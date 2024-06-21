@@ -1,3 +1,3 @@
 export default function App() {
-  return <div>App</div>;
+  return <div>{import.meta.env.VITE_SECRET}</div>;
 }
