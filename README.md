@@ -1,30 +1,57 @@
-# React + TypeScript + Vite
+# React App Multiple Environment Variable Files Configuration with ViteJS
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Step 1: Install Necessary Packages
+```
+npm i --save-dev @types/node
+npm I cross-env
+```
 
-Currently, two official plugins are available:
+Edit the scripts section of your package.json to include environment-specific commands:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```
+    "dev": "cross-env NODE_ENV=dev vite",
+    "localhost": "cross-env NODE_ENV=localhost vite",
+    "staging": "cross-env NODE_ENV=staging vite",
+    "test": "cross-env NODE_ENV=test vite",
+    "prod": "cross-env NODE_ENV=prod vite",
+```
 
-## Expanding the ESLint configuration
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+Replace the content of your vite.config.ts file with the following code to load environment variables based on the specified mode:
 
-- Configure the top-level `parserOptions` property like this:
+```
+import react from '@vitejs/plugin-react';
+import { defineConfig, loadEnv } from 'vite';
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
+// https://vitejs.dev/config/
+export default ({ mode }: { mode: string }) => {
+  process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
+  const envPrefix = process.env.NODE_ENV;
+
+  return defineConfig({
+    plugins: [react()],
+    envDir: `./env/${envPrefix}`,
+  });
+};
+```
+
+Organize your environment variable files in a structured folder hierarchy. Place the environment-specific files in a folder named env. Each folder should be named according to the environment, such as env/dev, env/localhost, env/staging, etc.
+
+[![folder structure][1]][1]
+
+
+In each environment variable file, add your variables. For example, in .env/dev/.env, add: `VITE_SECRET=dev`
+
+
+To verify that the environment variables are loaded correctly, modify your App component to display the environment variable:
+
+```
+export default function App() {
+  return <div>{import.meta.env.VITE_SECRET}</div>;
 }
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+
+
+
+  [1]: https://i.sstatic.net/eAnft6Wv.png
